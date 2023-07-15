@@ -152,6 +152,8 @@ public class TradeDirect implements TradeServices, Serializable {
   @Resource
   private ManagedExecutorService mes;
   
+  @Inject
+  OrderService orderService;
 
   @Override
   public MarketSummaryDataBean getMarketSummary() throws Exception {
@@ -820,7 +822,6 @@ public class TradeDirect implements TradeServices, Serializable {
               orderType.equals("buy")?OrderType.BUY.name():OrderType.SELL.name()
       );
 
-	  OrderService orderService = new OrderService();
 	  OrderResponse orderResponse =  orderService.createOrder(order);
 	  
 	  OrderResponseToOrderDataBeanConvertor convertor=new OrderResponseToOrderDataBeanConvertor();
@@ -844,37 +845,36 @@ public class TradeDirect implements TradeServices, Serializable {
     Collection<OrderDataBean> orderDataBeans = new ArrayList<OrderDataBean>();
     Connection conn = null;
     try {
-      Log.trace("TradeDirect:getOrders - inSession(" + this.inSession + ")", userID);
-      
-
-      conn = getConn();
-      PreparedStatement stmt = getStatement(conn, getOrdersByUserSQL);
-      stmt.setString(1, userID);
-
-      ResultSet rs = stmt.executeQuery();
-
-      // TODO: return top 5 orders for now -- next version will add a
-      // getAllOrders method
-      // also need to get orders sorted by order id descending
-      int i = 0;
-      while ((rs.next()) && (i++ < 5)) {
-        OrderDataBean orderData = getOrderDataFromResultSet(rs);
-        orderDataBeans.add(orderData);
-      }
-
-      stmt.close();
-      commit(conn);
-      
-      
-      QueryOrderInput input = new QueryOrderInput(null,userID, null);
-      OrderService orderService = new OrderService();
-	  	List<OrderResponse> orderResponses =  orderService.findOrders(input);
-	  	OrderResponseToOrderDataBeanConvertor convertor=new OrderResponseToOrderDataBeanConvertor();
-	  	ArrayList<OrderDataBean> orders=new ArrayList<OrderDataBean>();
-	  	for (OrderResponse orderResponse : orderResponses) {
-	  	orders.add(convertor.convertToOrderDataBean(orderResponse));
+	  Log.trace("TradeDirect:getOrders - inSession(" + this.inSession + ")", userID);
+	  
+	
+	  conn = getConn();
+	  PreparedStatement stmt = getStatement(conn, getOrdersByUserSQL);
+	  stmt.setString(1, userID);
+	
+	  ResultSet rs = stmt.executeQuery();
+	
+	  // TODO: return top 5 orders for now -- next version will add a
+	  // getAllOrders method
+	  // also need to get orders sorted by order id descending
+	  int i = 0;
+	  while ((rs.next()) && (i++ < 5)) {
+	    OrderDataBean orderData = getOrderDataFromResultSet(rs);
+	    orderDataBeans.add(orderData);
+	  }
+	
+	  stmt.close();
+	  commit(conn);
+	  
+	  
+	  QueryOrderInput input = new QueryOrderInput(null,userID, null);
+		List<OrderResponse> orderResponses =  orderService.findOrders(input);
+		OrderResponseToOrderDataBeanConvertor convertor=new OrderResponseToOrderDataBeanConvertor();
+		ArrayList<OrderDataBean> orders=new ArrayList<OrderDataBean>();
+		for (OrderResponse orderResponse : orderResponses) {
+		orders.add(convertor.convertToOrderDataBean(orderResponse));
 		}
-	  	return orders;
+		return orders;
 
     } catch (Exception e) {
       Log.error("TradeDirect:getOrders -- error getting user orders", e);

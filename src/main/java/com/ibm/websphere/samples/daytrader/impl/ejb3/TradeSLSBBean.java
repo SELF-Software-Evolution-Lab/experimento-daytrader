@@ -122,6 +122,9 @@ public class TradeSLSBBean implements TradeServices {
     @Inject
     SNSProducer snsProducer;
 
+    @Inject
+    OrderService orderService;
+
     @Override
     public MarketSummaryDataBean getMarketSummary() {
         return marketSummarySingleton.getMarketSummaryDataBean();
@@ -328,7 +331,6 @@ public class TradeSLSBBean implements TradeServices {
         AccountDataBean account = profile.getAccount();
         
         QueryOrderInput input = new QueryOrderInput(account.getAccountID().toString(),null, null);
-        OrderService orderService = new OrderService();
   	  	List<OrderResponse> orderResponses =  orderService.findOrders(input);
   	  	OrderResponseToOrderDataBeanConvertor convertor=new OrderResponseToOrderDataBeanConvertor();
   	  	ArrayList<OrderDataBean> orders=new ArrayList<OrderDataBean>();
@@ -375,7 +377,6 @@ public class TradeSLSBBean implements TradeServices {
             }*/
             OrderStatus[] status= {OrderStatus.CLOSED};
             QueryOrderInput input = new QueryOrderInput(null,userID, Arrays.asList(status));
-            OrderService orderService = new OrderService();
       	  	List<OrderResponse> orderResponses =  orderService.findOrders(input);
       	  	OrderResponseToOrderDataBeanConvertor convertor=new OrderResponseToOrderDataBeanConvertor();
       	  	ArrayList<OrderDataBean> ordersResponse=new ArrayList<OrderDataBean>();
@@ -618,8 +619,6 @@ public class TradeSLSBBean implements TradeServices {
                     TradeConfig.getOrderFee(orderType),
                     orderType.equals("buy")?OrderType.BUY.name():OrderType.SELL.name()
             );
-            
-            OrderService orderService = new OrderService();
       	  	OrderResponse orderResponse =  orderService.createOrder(orderInput);
       	  	
       	  OrderResponseToOrderDataBeanConvertor convertor=new OrderResponseToOrderDataBeanConvertor();
