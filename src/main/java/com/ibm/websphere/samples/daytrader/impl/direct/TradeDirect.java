@@ -828,9 +828,9 @@ public class TradeDirect implements TradeServices, Serializable {
 	  
 	} catch (Exception e) {
 	  Log.error("TradeDirect:createOrder -- error getting user orders", e);
-	  rollBack(conn, e);
+	  //rollBack(conn, e);
 	} finally {
-	  releaseConn(conn);
+	  //releaseConn(conn);
 	}
 	
 	return orderData;
