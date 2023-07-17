@@ -10,6 +10,7 @@ import com.ibm.websphere.samples.daytrader.microservices.order.OrderMessage;
 import com.ibm.websphere.samples.daytrader.util.Log;
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.SnsClient;
@@ -25,6 +26,10 @@ public class SNSProducer {
     @Inject
     @ConfigProperty(name = "AWS_SECRET_KEY")
     private String awsSecretKey;
+    
+    @Inject
+    @ConfigProperty(name = "AWS_SESSION_TOKEN")
+    private String awsSessionToken;
     
     @Inject
     @ConfigProperty(name = "AWS_REGION_KEY")
@@ -44,8 +49,10 @@ public class SNSProducer {
     public <T> void sendMessage(T message) {
     	Log.error("SNSARN "+snsARN);
     	if(this.snsClient==null) {
+    		AwsSessionCredentials sessionCredentials = AwsSessionCredentials.create(awsAccessKey, awsSecretKey, awsSessionToken);
+
     		this.snsClient = SnsClient.builder().region(Region.of(awsRegion))
-                    .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(awsAccessKey, awsSecretKey)))
+                    .credentialsProvider(StaticCredentialsProvider.create(sessionCredentials))
                     .build();
     	}
     	Gson gson = new Gson();

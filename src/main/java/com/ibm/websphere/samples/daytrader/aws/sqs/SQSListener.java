@@ -24,6 +24,7 @@ import com.ibm.websphere.samples.daytrader.util.TradeRunTimeModeLiteral;
 
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
@@ -49,6 +50,10 @@ public class SQSListener implements ServletContextListener {
     private String awsSecretKey;
     
     @Inject
+    @ConfigProperty(name = "AWS_SESSION_TOKEN")
+    private String awsSessionToken;
+    
+    @Inject
     @ConfigProperty(name = "AWS_REGION_KEY")
     private String awsRegion;
     
@@ -65,10 +70,12 @@ public class SQSListener implements ServletContextListener {
     
     @Override
     public void contextInitialized(ServletContextEvent sce) {
+    	
+		AwsSessionCredentials sessionCredentials = AwsSessionCredentials.create(awsAccessKey, awsSecretKey, awsSessionToken);
 
         this.sqsClient = SqsClient.builder()
                 .region(Region.of(awsRegion))
-                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(awsAccessKey, awsSecretKey)))
+                .credentialsProvider(StaticCredentialsProvider.create(sessionCredentials))
                 .build();
 
         startListening();
