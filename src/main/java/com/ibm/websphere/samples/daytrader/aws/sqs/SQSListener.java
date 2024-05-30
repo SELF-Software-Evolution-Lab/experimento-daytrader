@@ -1,30 +1,25 @@
 package com.ibm.websphere.samples.daytrader.aws.sqs;
-import java.util.List;
 
+import java.util.List;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
-
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.ibm.websphere.samples.daytrader.interfaces.TradeServices;
 import com.ibm.websphere.samples.daytrader.microservices.order.OrderMessage;
-import com.ibm.websphere.samples.daytrader.microservices.order.OrderResponse;
 import com.ibm.websphere.samples.daytrader.microservices.order.AWSSNSMessage;
 import com.ibm.websphere.samples.daytrader.microservices.order.MessageType;
 import com.ibm.websphere.samples.daytrader.microservices.order.OrderCreatedMessage;
 import com.ibm.websphere.samples.daytrader.util.Log;
 import com.ibm.websphere.samples.daytrader.util.TradeConfig;
 import com.ibm.websphere.samples.daytrader.util.TradeRunTimeModeLiteral;
-
+import software.amazon.awssdk.auth.credentials.*;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
@@ -38,15 +33,6 @@ public class SQSListener implements ServletContextListener {
     
     private SqsClient sqsClient;
     private TradeServices tradeAction;
-    
-    
-    @Inject
-    @ConfigProperty(name = "AWS_ACCESS_KEY")
-    private String awsAccessKey;
-    
-    @Inject
-    @ConfigProperty(name = "AWS_SECRET_KEY")
-    private String awsSecretKey;
     
     @Inject
     @ConfigProperty(name = "AWS_REGION_KEY")
@@ -65,10 +51,9 @@ public class SQSListener implements ServletContextListener {
     
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-
         this.sqsClient = SqsClient.builder()
                 .region(Region.of(awsRegion))
-                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(awsAccessKey, awsSecretKey)))
+                .credentialsProvider(StaticCredentialsProvider.create(ProfileCredentialsProvider.create().resolveCredentials()))
                 .build();
 
         startListening();
